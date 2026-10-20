@@ -21,6 +21,9 @@ import {
   auth,
   onAuthStateChanged,
   signInWithGooglePopup,
+  signInWithGoogleRedirect,
+  checkRedirectResult,
+  parseFirebaseAuthError,
   signOutLearner,
   fetchOrCreateCloudLearnerProgress,
   syncCloudLearnerProgress,
@@ -45,6 +48,7 @@ import {
   LogIn,
   LogOut,
   Cloud,
+  AlertCircle,
 } from 'lucide-react';
 
 interface PracticeLogItem {
@@ -264,10 +268,25 @@ export default function UkuleleAcademyPage() {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [isAuthReady, setIsAuthReady] = useState<boolean>(false);
   const [isCloudHydrated, setIsCloudHydrated] = useState<boolean>(false);
+  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
   const [cloudSyncStatus, setCloudSyncStatus] = useState<
     'idle' | 'syncing' | 'saved' | 'error'
   >('idle');
   const [authErrorMsg, setAuthErrorMsg] = useState<string | null>(null);
+
+  // Check for returning redirect sign-in results on initial mount
+  useEffect(() => {
+    checkRedirectResult()
+      .then((user) => {
+        if (user) {
+          setCurrentUser(user);
+        }
+      })
+      .catch((err) => {
+        const msg = parseFirebaseAuthError(err);
+        setAuthErrorMsg(msg);
+      });
+  }, []);
 
   // Listen to Firebase Auth state and load/create cloud learner profile
   useEffect(() => {
@@ -442,15 +461,24 @@ export default function UkuleleAcademyPage() {
   ]);
 
   const handleGoogleSignIn = async () => {
+    setIsSigningIn(true);
     setAuthErrorMsg(null);
     try {
       await signInWithGooglePopup();
-    } catch (err) {
-      const msg =
-        err instanceof Error ? err.message : 'Sign-in cancelled or failed.';
-      if (!msg.includes('popup-closed-by-user')) {
-        setAuthErrorMsg('Could not sign in with Google. Please try again.');
+    } catch (err: unknown) {
+      const errObj = err as {message?: string; code?: string};
+      if (errObj?.message === 'POPUP_BLOCKED_REDIRECTING') {
+        // Redirecting to Google OAuth, keep state active
+        return;
       }
+      if (errObj?.code === 'auth/popup-closed-by-user') {
+        setIsSigningIn(false);
+        return;
+      }
+      const msg = parseFirebaseAuthError(err);
+      setAuthErrorMsg(msg);
+    } finally {
+      setIsSigningIn(false);
     }
   };
 
@@ -915,12 +943,19 @@ export default function UkuleleAcademyPage() {
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
-                    className="inline-flex items-center gap-1.5 text-[13px] sm:text-[14px] font-semibold text-[#12343B] px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#FFC857]/60 transition-colors whitespace-nowrap koa-focus"
+                    disabled={isSigningIn}
+                    className={`inline-flex items-center gap-1.5 text-[13px] sm:text-[14px] font-semibold text-[#12343B] px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#FFC857]/60 transition-colors whitespace-nowrap koa-focus ${
+                      isSigningIn ? 'opacity-70 cursor-not-allowed' : ''
+                    }`}
                     title="Sign in with Google to save your streak and progress in the cloud"
                   >
-                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#12343B] shrink-0" />
-                    <span className="sm:hidden">Sign in</span>
-                    <span className="hidden sm:inline">Save streak</span>
+                    {isSigningIn ? (
+                      <div className="w-3.5 h-3.5 sm:w-4 sm:h-4 border-2 border-[#12343B] border-t-transparent rounded-full animate-spin shrink-0" />
+                    ) : (
+                      <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#12343B] shrink-0" />
+                    )}
+                    <span className="sm:hidden">{isSigningIn ? 'Connecting...' : 'Sign in'}</span>
+                    <span className="hidden sm:inline">{isSigningIn ? 'Connecting...' : 'Save streak'}</span>
                   </button>
                 )}
               </>
@@ -928,6 +963,29 @@ export default function UkuleleAcademyPage() {
           </div>
         </header>
       </div>
+
+      {/* Global Auth Alert Notification Banner */}
+      {authErrorMsg && (
+        <div className="max-w-[1100px] w-full mx-auto px-4 sm:px-6 pt-3">
+          <div className="bg-[#FF7A59]/15 border border-[#FF7A59]/35 rounded-2xl px-4 py-3 flex items-start justify-between gap-3 text-[#12343B] shadow-sm animate-in fade-in slide-in-from-top-2 duration-200">
+            <div className="flex items-start gap-2.5">
+              <AlertCircle className="w-5 h-5 text-[#FF7A59] shrink-0 mt-0.5" />
+              <div className="text-[13px] sm:text-[14px] leading-relaxed">
+                <span className="font-bold text-[#FF7A59]">Sign-in Alert: </span>
+                <span>{authErrorMsg}</span>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setAuthErrorMsg(null)}
+              className="text-[#3F5C62] hover:text-[#12343B] text-[13px] font-bold px-2 py-0.5 rounded-full hover:bg-black/5 shrink-0"
+              aria-label="Dismiss error notification"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* ==================== MAIN CONTENT ==================== */}
       <main
@@ -1828,10 +1886,17 @@ export default function UkuleleAcademyPage() {
                     <button
                       type="button"
                       onClick={handleGoogleSignIn}
-                      className="inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#12343B] text-[#FFF7E8] text-[15px] font-semibold shrink-0 min-h-[44px] koa-focus"
+                      disabled={isSigningIn}
+                      className={`inline-flex items-center justify-center gap-2 px-5 py-2.5 rounded-full bg-[#12343B] text-[#FFF7E8] text-[15px] font-semibold shrink-0 min-h-[44px] koa-focus ${
+                        isSigningIn ? 'opacity-70 cursor-not-allowed' : ''
+                      }`}
                     >
-                      <LogIn className="w-4 h-4" />
-                      <span>Sign in with Google</span>
+                      {isSigningIn ? (
+                        <div className="w-4 h-4 border-2 border-[#FFF7E8] border-t-transparent rounded-full animate-spin shrink-0" />
+                      ) : (
+                        <LogIn className="w-4 h-4" />
+                      )}
+                      <span>{isSigningIn ? 'Connecting to Google...' : 'Sign in with Google'}</span>
                     </button>
                   </div>
                 )}

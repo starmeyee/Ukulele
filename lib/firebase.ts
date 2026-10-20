@@ -5,6 +5,8 @@ import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
+  getRedirectResult,
   signOut,
   onAuthStateChanged,
   User,
@@ -23,10 +25,34 @@ import {
   serverTimestamp,
   Timestamp,
 } from 'firebase/firestore';
-import firebaseConfig from '../firebase-applet-config.json';
+import defaultFirebaseConfig from '../firebase-applet-config.json';
+
+// Resolve configuration: Prioritize environment variables (Vercel), fallback to default applet config
+const resolvedApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || defaultFirebaseConfig.apiKey;
+const resolvedAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || defaultFirebaseConfig.authDomain;
+const resolvedProjectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || defaultFirebaseConfig.projectId;
+const resolvedStorageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || defaultFirebaseConfig.storageBucket;
+const resolvedMessagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || defaultFirebaseConfig.messagingSenderId;
+const resolvedAppId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID || defaultFirebaseConfig.appId;
+const resolvedMeasurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || defaultFirebaseConfig.measurementId;
+
+const firebaseConfig = {
+  apiKey: resolvedApiKey,
+  authDomain: resolvedAuthDomain,
+  projectId: resolvedProjectId,
+  storageBucket: resolvedStorageBucket,
+  messagingSenderId: resolvedMessagingSenderId,
+  appId: resolvedAppId,
+  ...(resolvedMeasurementId ? { measurementId: resolvedMeasurementId } : {}),
+};
 
 const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
-export const db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+
+// Support custom Firestore database ID if provided, otherwise standard (default) database
+const customDbId = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID ||
+  (!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ? defaultFirebaseConfig.firestoreDatabaseId : undefined);
+
+export const db = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
 export const auth = getAuth(app);
 
 // Validate connection to Firestore on boot
@@ -41,7 +67,7 @@ export async function testFirestoreConnection(): Promise<void> {
       error instanceof Error &&
       error.message.includes('the client is offline')
     ) {
-      console.error('Please check your Firebase configuration.');
+      console.warn('Firebase client offline or initializing.');
     }
   }
 }
@@ -127,10 +153,68 @@ export interface CloudPracticeSessionItem {
 }
 
 const googleProvider = new GoogleAuthProvider();
+googleProvider.setCustomParameters({
+  prompt: 'select_account',
+});
+
+/**
+ * Translates Firebase Auth error codes into human-friendly, actionable messages.
+ */
+export function parseFirebaseAuthError(error: unknown): string {
+  if (!error || typeof error !== 'object') {
+    return 'Could not sign in with Google. Please try again.';
+  }
+  const authErr = error as {code?: string; message?: string};
+  const code = authErr.code || '';
+
+  switch (code) {
+    case 'auth/unauthorized-domain':
+      return 'This domain is not authorized in Firebase Console. Please add your Vercel domain in Firebase Console -> Authentication -> Settings -> Authorized Domains.';
+    case 'auth/popup-blocked':
+      return 'Sign-in popup was blocked by your browser. Attempting redirect...';
+    case 'auth/popup-closed-by-user':
+      return 'Sign-in was cancelled before completion.';
+    case 'auth/operation-not-allowed':
+      return 'Google Sign-In is not enabled in your Firebase project. Please enable Google in Firebase Console -> Authentication -> Sign-in method.';
+    case 'auth/network-request-failed':
+      return 'Network connection issue with Firebase. Please check your internet connection.';
+    case 'auth/cancelled-popup-request':
+      return 'Another sign-in attempt was already in progress.';
+    case 'auth/internal-error':
+      return 'Firebase internal error. Please verify your Firebase project configuration.';
+    default:
+      return authErr.message || 'Could not sign in with Google. Please try again.';
+  }
+}
 
 export async function signInWithGooglePopup(): Promise<User> {
-  const result = await signInWithPopup(auth, googleProvider);
-  return result.user;
+  try {
+    const result = await signInWithPopup(auth, googleProvider);
+    return result.user;
+  } catch (error: unknown) {
+    const authErr = error as {code?: string};
+    // Automatically trigger redirect if popup is blocked by mobile or browser settings
+    if (authErr?.code === 'auth/popup-blocked' && typeof window !== 'undefined') {
+      await signInWithRedirect(auth, googleProvider);
+      throw new Error('POPUP_BLOCKED_REDIRECTING');
+    }
+    throw error;
+  }
+}
+
+export async function signInWithGoogleRedirect(): Promise<void> {
+  await signInWithRedirect(auth, googleProvider);
+}
+
+export async function checkRedirectResult(): Promise<User | null> {
+  if (typeof window === 'undefined') return null;
+  try {
+    const result = await getRedirectResult(auth);
+    return result?.user ?? null;
+  } catch (error) {
+    console.error('Redirect sign-in error:', error);
+    throw error;
+  }
 }
 
 export async function signOutLearner(): Promise<void> {
