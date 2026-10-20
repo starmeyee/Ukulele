@@ -276,6 +276,16 @@ export default function UkuleleAcademyPage() {
 
   // Check for returning redirect sign-in results on initial mount
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    // Check if the user had actively initiated a redirect sign-in
+    let wasRedirectActive = false;
+    try {
+      wasRedirectActive = Boolean(sessionStorage.getItem('koa_auth_redirect_active'));
+    } catch {
+      // Ignore
+    }
+
     checkRedirectResult()
       .then((user) => {
         if (user) {
@@ -283,8 +293,12 @@ export default function UkuleleAcademyPage() {
         }
       })
       .catch((err) => {
-        const msg = parseFirebaseAuthError(err);
-        setAuthErrorMsg(msg);
+        // Only surface redirect errors if the user actually initiated a sign-in redirect,
+        // preventing false warning banners on regular page visits or refreshes
+        if (wasRedirectActive) {
+          const msg = parseFirebaseAuthError(err);
+          setAuthErrorMsg(msg);
+        }
       });
   }, []);
 

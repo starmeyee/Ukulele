@@ -29,12 +29,25 @@ import defaultFirebaseConfig from '../firebase-applet-config.json';
 
 // Resolve configuration: Prioritize environment variables (Vercel), fallback to default applet config
 const resolvedApiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY || defaultFirebaseConfig.apiKey;
-const resolvedAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || defaultFirebaseConfig.authDomain;
+const rawAuthDomain = process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN || defaultFirebaseConfig.authDomain;
 const resolvedProjectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || defaultFirebaseConfig.projectId;
 const resolvedStorageBucket = process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET || defaultFirebaseConfig.storageBucket;
 const resolvedMessagingSenderId = process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID || defaultFirebaseConfig.messagingSenderId;
 const resolvedAppId = process.env.NEXT_PUBLIC_FIREBASE_APP_ID || defaultFirebaseConfig.appId;
 const resolvedMeasurementId = process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID || defaultFirebaseConfig.measurementId;
+
+// Defensive sanitization: ensure authDomain routes to a valid Firebase auth handler.
+// If a user sets rawAuthDomain to a custom domain (e.g. "starmeyee.space") without custom Firebase Hosting handler rewrites,
+// it falls back to "${resolvedProjectId}.firebaseapp.com" so /__/auth/handler does not return HTTP 404.
+let resolvedAuthDomain = rawAuthDomain;
+if (
+  resolvedAuthDomain &&
+  !resolvedAuthDomain.includes('firebaseapp.com') &&
+  !resolvedAuthDomain.includes('web.app') &&
+  resolvedProjectId
+) {
+  resolvedAuthDomain = `${resolvedProjectId}.firebaseapp.com`;
+}
 
 const firebaseConfig = {
   apiKey: resolvedApiKey,
@@ -54,27 +67,6 @@ const customDbId = process.env.NEXT_PUBLIC_FIREBASE_FIRESTORE_DATABASE_ID ||
 
 export const db = customDbId ? getFirestore(app, customDbId) : getFirestore(app);
 export const auth = getAuth(app);
-
-// Validate connection to Firestore on boot
-let hasTestedConnection = false;
-export async function testFirestoreConnection(): Promise<void> {
-  if (typeof window === 'undefined' || hasTestedConnection) return;
-  hasTestedConnection = true;
-  try {
-    await getDocFromServer(doc(db, 'test', 'connection'));
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      error.message.includes('the client is offline')
-    ) {
-      console.warn('Firebase client offline or initializing.');
-    }
-  }
-}
-
-if (typeof window !== 'undefined') {
-  testFirestoreConnection();
-}
 
 export enum OperationType {
   CREATE = 'create',
@@ -195,6 +187,11 @@ export async function signInWithGooglePopup(): Promise<User> {
     const authErr = error as {code?: string};
     // Automatically trigger redirect if popup is blocked by mobile or browser settings
     if (authErr?.code === 'auth/popup-blocked' && typeof window !== 'undefined') {
+      try {
+        sessionStorage.setItem('koa_auth_redirect_active', 'true');
+      } catch {
+        // Ignore storage exceptions
+      }
       await signInWithRedirect(auth, googleProvider);
       throw new Error('POPUP_BLOCKED_REDIRECTING');
     }
@@ -203,6 +200,13 @@ export async function signInWithGooglePopup(): Promise<User> {
 }
 
 export async function signInWithGoogleRedirect(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      sessionStorage.setItem('koa_auth_redirect_active', 'true');
+    } catch {
+      // Ignore storage exceptions
+    }
+  }
   await signInWithRedirect(auth, googleProvider);
 }
 
@@ -210,6 +214,13 @@ export async function checkRedirectResult(): Promise<User | null> {
   if (typeof window === 'undefined') return null;
   try {
     const result = await getRedirectResult(auth);
+    if (typeof window !== 'undefined') {
+      try {
+        sessionStorage.removeItem('koa_auth_redirect_active');
+      } catch {
+        // Ignore
+      }
+    }
     return result?.user ?? null;
   } catch (error) {
     console.error('Redirect sign-in error:', error);
