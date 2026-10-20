@@ -812,8 +812,8 @@ export default function InteractiveUkuleleStage({
 
         {/* ==================== MODE 1: HERO SOPRANO UKULELE & HOTSPOTS ==================== */}
         {stageTab === 'anatomy' && (
-          <div className="relative my-auto py-4 sm:py-8 flex items-center justify-center">
-            {/* Ukulele Container: fills ~85% of stage width on desktop, rotates 90° on portrait mobile if needed */}
+          <div className="relative my-auto py-3 sm:py-8 flex flex-col items-center justify-center w-full min-w-0">
+            {/* Ukulele Container: fills width on mobile and ~88% of stage width on desktop */}
             <div className="relative w-full md:w-[88%] mx-auto aspect-[1000/360]">
               {renderLayeredBlackUkuleleSvg()}
 
@@ -912,7 +912,7 @@ export default function InteractiveUkuleleStage({
 
                       {/* Small Glass Label Chip on Hover, Focus, or Select */}
                       {(isHovered || isSelected) && (
-                        <div className="absolute left-1/2 -translate-x-1/2 -top-9 px-3 py-1 rounded-full koa-glass text-[14px] font-semibold text-[#12343B] whitespace-nowrap pointer-events-none shadow-sm">
+                        <div className="hidden sm:block absolute left-1/2 -translate-x-1/2 -top-9 px-3 py-1 rounded-full koa-glass text-[14px] font-semibold text-[#12343B] whitespace-nowrap pointer-events-none shadow-sm">
                           {partData.name}
                         </div>
                       )}
@@ -1023,30 +1023,30 @@ export default function InteractiveUkuleleStage({
                 })}
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   type="button"
                   onClick={() => handleStrum('D')}
-                  className="px-5 py-2.5 rounded-full bg-[#12343B] text-[#FFF7E8] text-[15px] font-semibold flex items-center gap-2 min-h-[44px] koa-focus"
+                  className="flex-1 sm:flex-initial justify-center px-4 sm:px-5 py-2.5 rounded-full bg-[#12343B] text-[#FFF7E8] text-[15px] font-semibold flex items-center gap-2 min-h-[44px] koa-focus"
                 >
-                  <ArrowDown className="w-4 h-4 text-[#FFC857]" />
+                  <ArrowDown className="w-4 h-4 text-[#FFC857] shrink-0" />
                   <span>Strum {currentChord.name}</span>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleStrum('U')}
-                  className="px-4 py-2.5 rounded-full bg-[#FFFCF5] text-[#12343B] text-[15px] font-semibold flex items-center gap-1.5 min-h-[44px] koa-focus"
+                  className="px-4 py-2.5 rounded-full bg-[#FFFCF5] text-[#12343B] text-[15px] font-semibold flex items-center justify-center gap-1.5 min-h-[44px] koa-focus"
                 >
-                  <ArrowUp className="w-4 h-4" />
+                  <ArrowUp className="w-4 h-4 shrink-0" />
                   <span>Up</span>
                 </button>
               </div>
             </div>
 
             {/* Interactive Matte-Black Fretboard Grid + Vertical Chord Diagram */}
-            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center">
-              <div className="lg:col-span-8 bg-[#121618] rounded-[24px] p-4 sm:p-5 koa-shadow overflow-x-auto">
-                <div className="min-w-[600px]">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-center min-w-0 w-full">
+              <div className="lg:col-span-8 min-w-0 w-full max-w-full bg-[#121618] rounded-[24px] p-3.5 sm:p-5 koa-shadow overflow-x-auto">
+                <div className="min-w-[520px] sm:min-w-[600px]">
                   <div className="grid grid-cols-10 text-center text-[14px] text-[#E4EFE7]/80 mb-2 font-dm-mono">
                     <div>String</div>
                     <div>Open</div>
@@ -1341,10 +1341,10 @@ export default function InteractiveUkuleleStage({
             </div>
 
             <div
-              className={`grid gap-3 ${
+              className={`grid gap-2.5 sm:gap-3 ${
                 currentPattern.steps.length === 6
                   ? 'grid-cols-3 sm:grid-cols-6'
-                  : 'grid-cols-4 sm:grid-cols-8'
+                  : 'grid-cols-2 sm:grid-cols-4 md:grid-cols-8'
               }`}
             >
               {currentPattern.steps.map((step, idx) => {
@@ -1482,8 +1482,8 @@ export default function InteractiveUkuleleStage({
             </div>
 
             {currentSong.melodyTab && (
-              <div className="bg-[#14181A] rounded-[24px] p-4 overflow-x-auto text-[#FFF7E8] font-dm-mono">
-                <div className="min-w-[600px] space-y-2">
+              <div className="w-full min-w-0 max-w-full bg-[#14181A] rounded-[24px] p-3.5 sm:p-4 overflow-x-auto text-[#FFF7E8] font-dm-mono">
+                <div className="min-w-[500px] sm:min-w-[600px] space-y-2">
                   {([1, 2, 3, 4] as const).map((strNum) => {
                     const strName =
                       strNum === 1 ? 'A' : strNum === 2 ? 'E' : strNum === 3 ? 'C' : 'G';
@@ -1548,8 +1548,8 @@ export default function InteractiveUkuleleStage({
       {/* ==================== PROGRESSIVE DISCLOSURE CONTROLS UNDER STAGE ==================== */}
       {/* Shown only on multi-mode lessons or when externalChordId is active; hidden on pure anatomy lessons unless user switches */}
       {(lesson.visualMode !== 'anatomy' || externalChordId || stageTab !== 'anatomy') && (
-        <div className="flex flex-wrap items-center justify-center gap-3">
-          <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-[#E4EFE7]">
+        <div className="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center justify-center gap-3 w-full">
+          <div className="grid grid-cols-2 sm:inline-flex items-center gap-1.5 sm:gap-1 p-1.5 rounded-[22px] sm:rounded-full bg-[#E4EFE7] w-full sm:w-auto">
             {(
               [
                 {id: 'anatomy', label: 'Ukulele & Parts'},
@@ -1562,7 +1562,7 @@ export default function InteractiveUkuleleStage({
                 key={tab.id}
                 type="button"
                 onClick={() => setStageTab(tab.id)}
-                className={`px-4 py-2 rounded-full text-[15px] font-semibold transition-colors min-h-[42px] koa-focus ${
+                className={`px-3 sm:px-4 py-2 rounded-full text-[13px] sm:text-[15px] font-semibold transition-colors min-h-[42px] text-center koa-focus ${
                   stageTab === tab.id
                     ? 'bg-[#12343B] text-[#FFF7E8]'
                     : 'text-[#12343B] hover:bg-[#12343B]/10'
@@ -1575,7 +1575,7 @@ export default function InteractiveUkuleleStage({
 
           {/* Speed controls appear ONLY in Strum and Tab modes */}
           {(stageTab === 'rhythm' || stageTab === 'song-tab') && (
-            <div className="inline-flex items-center gap-1 p-1.5 rounded-full bg-[#E4EFE7] font-dm-mono">
+            <div className="inline-flex items-center justify-center gap-1 p-1.5 rounded-full bg-[#E4EFE7] font-dm-mono self-center">
               {([0.5, 0.75, 1.0] as const).map((spd) => (
                 <button
                   key={spd}

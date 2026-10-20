@@ -223,19 +223,19 @@ export default function AiChordSuggester({
             e.preventDefault();
             fetchChordSuggestions();
           }}
-          className="flex items-center gap-2.5 w-full lg:w-auto lg:min-w-[380px]"
+          className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 w-full lg:w-auto lg:min-w-[380px]"
         >
           <input
             type="text"
             value={moodInput}
             onChange={(e) => setMoodInput(e.target.value)}
             placeholder="e.g. happy, sad, simple, jazzy…"
-            className="flex-1 bg-[#FFFCF5] rounded-full px-4 py-3 text-[16px] text-[#12343B] placeholder:text-[#3F5C62] ring-1 ring-[#12343B]/20 focus:outline-none focus:ring-2 focus:ring-[#12343B] min-h-[48px]"
+            className="min-w-0 flex-1 bg-[#FFFCF5] rounded-full px-4 py-3 text-[16px] text-[#12343B] placeholder:text-[#3F5C62] ring-1 ring-[#12343B]/20 focus:outline-none focus:ring-2 focus:ring-[#12343B] min-h-[48px]"
           />
           <button
             type="submit"
             disabled={isLoading || !moodInput.trim()}
-            className="px-5 py-3 bg-[#12343B] disabled:opacity-50 text-[#FFF7E8] rounded-full text-[15px] font-semibold flex items-center gap-2 transition-colors whitespace-nowrap shrink-0 min-h-[48px] koa-focus"
+            className="px-5 py-3 bg-[#12343B] disabled:opacity-50 text-[#FFF7E8] rounded-full text-[15px] font-semibold flex items-center justify-center gap-2 transition-colors whitespace-nowrap shrink-0 min-h-[48px] koa-focus"
           >
             {isLoading ? (
               <>
@@ -268,7 +268,7 @@ export default function AiChordSuggester({
         <button
           type="button"
           onClick={playFullProgression}
-          className="ml-auto px-5 py-2.5 bg-[#12343B] text-[#FFF7E8] rounded-full text-[15px] font-semibold flex items-center gap-2 transition-colors min-h-[44px] koa-focus"
+          className="w-full sm:w-auto sm:ml-auto px-5 py-2.5 bg-[#12343B] text-[#FFF7E8] rounded-full text-[15px] font-semibold flex items-center justify-center gap-2 transition-colors min-h-[44px] koa-focus"
         >
           <Play className="w-4 h-4 fill-current text-[#FFC857]" />
           <span>Play {suggestion.chords.map((c) => c.id).join(' – ')}</span>

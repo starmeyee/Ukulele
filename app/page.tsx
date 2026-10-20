@@ -730,10 +730,10 @@ export default function UkuleleAcademyPage() {
         <p
           key={index}
           className={`text-[#12343B] leading-relaxed ${
-            index === 0 ? 'text-[20px] font-medium' : 'text-[18px]'
+            index === 0 ? 'text-[19px] sm:text-[20px] font-medium' : 'text-[17px] sm:text-[18px]'
           } ${
             activeSoundWaveStep === index + 1
-              ? 'bg-[#FFC857]/20 rounded-xl px-3 py-1 -mx-3 transition-colors duration-300'
+              ? 'bg-[#FFC857]/20 rounded-xl px-3 py-1.5 transition-colors duration-300'
               : ''
           }`}
         >
@@ -803,7 +803,7 @@ export default function UkuleleAcademyPage() {
   const ringDashOffset = ringCircumference * (1 - timerProgressFraction);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#FFF7E8] text-[#12343B] pb-28 md:pb-16">
+    <div className="min-h-screen w-full max-w-[100vw] overflow-x-clip flex flex-col bg-[#FFF7E8] text-[#12343B] pb-28 md:pb-16">
       {/* Accessible Skip Link */}
       <a
         href="#main-content"
@@ -813,8 +813,8 @@ export default function UkuleleAcademyPage() {
       </a>
 
       {/* ==================== 5.1 FLOATING GLASS PILL NAVIGATION (1st allowed glass surface) ==================== */}
-      <div className="sticky top-3 z-30 px-4 sm:px-6 pt-3">
-        <header className="max-w-[1100px] mx-auto koa-glass rounded-full px-6 py-3 flex items-center justify-between gap-4 koa-shadow">
+      <div className="sticky top-2 sm:top-3 z-30 px-3 sm:px-6 pt-2 sm:pt-3">
+        <header className="max-w-[1100px] mx-auto koa-glass rounded-full px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-2 sm:gap-4 koa-shadow">
           {/* Wordmark on the left */}
           <a
             href="#top"
@@ -823,7 +823,7 @@ export default function UkuleleAcademyPage() {
               setActiveNav('lessons');
               setShowLessonPathBrowser(false);
             }}
-            className="font-fraunces text-[22px] font-bold tracking-tight text-[#12343B] whitespace-nowrap shrink-0 koa-focus rounded-full px-2"
+            className="font-fraunces text-[18px] sm:text-[22px] font-bold tracking-tight text-[#12343B] whitespace-nowrap shrink-0 koa-focus rounded-full px-1.5 sm:px-2"
           >
             Ukulele Academy
           </a>
@@ -872,16 +872,26 @@ export default function UkuleleAcademyPage() {
           </nav>
 
           {/* Right Context Action: Browse All 44 Lessons + Account Cloud Sync */}
-          <div className="flex items-center gap-2.5 shrink-0">
+          <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0 min-w-0">
             {activeNav === 'lessons' && (
               <button
                 type="button"
                 onClick={() => setShowLessonPathBrowser((v) => !v)}
-                className="text-[15px] font-semibold text-[#3F5C62] hover:text-[#12343B] transition-colors px-3 py-1.5 rounded-full hover:bg-[#12343B]/5 koa-focus"
+                className="text-[13px] sm:text-[15px] font-semibold text-[#3F5C62] hover:text-[#12343B] transition-colors px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full hover:bg-[#12343B]/5 whitespace-nowrap koa-focus"
               >
-                {showLessonPathBrowser
-                  ? `Back to Lesson ${currentLesson.number}`
-                  : 'All 44 lessons'}
+                {showLessonPathBrowser ? (
+                  <>
+                    <span className="sm:hidden">← L{currentLesson.number}</span>
+                    <span className="hidden sm:inline">
+                      Back to Lesson {currentLesson.number}
+                    </span>
+                  </>
+                ) : (
+                  <>
+                    <span className="sm:hidden">All 44</span>
+                    <span className="hidden sm:inline">All 44 lessons</span>
+                  </>
+                )}
               </button>
             )}
 
@@ -891,10 +901,10 @@ export default function UkuleleAcademyPage() {
                   <button
                     type="button"
                     onClick={() => setActiveNav('progress')}
-                    className="inline-flex items-center gap-2 text-[14px] font-semibold text-[#12343B] px-3 py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#3DB9A5]/25 transition-colors koa-focus"
+                    className="inline-flex items-center gap-1.5 sm:gap-2 text-[13px] sm:text-[14px] font-semibold text-[#12343B] px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#3DB9A5]/25 transition-colors whitespace-nowrap koa-focus"
                     title="Account & Cloud Synced Progress"
                   >
-                    <Flame className="w-4 h-4 text-[#FF7A59] fill-current shrink-0" />
+                    <Flame className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FF7A59] fill-current shrink-0" />
                     <span>{dailyStreakCount}d</span>
                     <span className="hidden sm:inline text-[#3F5C62]">·</span>
                     <span className="hidden sm:inline truncate max-w-[110px]">
@@ -905,11 +915,12 @@ export default function UkuleleAcademyPage() {
                   <button
                     type="button"
                     onClick={handleGoogleSignIn}
-                    className="inline-flex items-center gap-1.5 text-[14px] font-semibold text-[#12343B] px-3.5 py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#FFC857]/60 transition-colors koa-focus"
+                    className="inline-flex items-center gap-1.5 text-[13px] sm:text-[14px] font-semibold text-[#12343B] px-2.5 sm:px-3.5 py-1 sm:py-1.5 rounded-full bg-[#E4EFE7] hover:bg-[#FFC857]/60 transition-colors whitespace-nowrap koa-focus"
                     title="Sign in with Google to save your streak and progress in the cloud"
                   >
-                    <LogIn className="w-4 h-4 text-[#12343B]" />
-                    <span>Save streak</span>
+                    <LogIn className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#12343B] shrink-0" />
+                    <span className="sm:hidden">Sign in</span>
+                    <span className="hidden sm:inline">Save streak</span>
                   </button>
                 )}
               </>
@@ -921,7 +932,7 @@ export default function UkuleleAcademyPage() {
       {/* ==================== MAIN CONTENT ==================== */}
       <main
         id="main-content"
-        className="flex-1 w-full max-w-[1100px] mx-auto px-4 sm:px-6 pt-8 md:pt-12"
+        className="flex-1 w-full max-w-[1100px] mx-auto px-4 sm:px-6 pt-6 sm:pt-8 md:pt-12 min-w-0"
       >
         {/* ==================== DESTINATION 1: LESSONS (LESSON PAGE OR 44-LESSON PATH) ==================== */}
         {activeNav === 'lessons' && !showLessonPathBrowser && (
@@ -1013,7 +1024,7 @@ export default function UkuleleAcademyPage() {
 
               {/* Interactive Sound Path Visual: String -> Bridge -> Body -> Soundhole -> Ear */}
               <div
-                className="py-5 px-4 rounded-[24px] bg-[#E4EFE7]/65 flex items-center justify-between gap-2 overflow-x-auto"
+                className="py-4 px-2.5 sm:py-5 sm:px-4 rounded-[24px] bg-[#E4EFE7]/65 grid grid-cols-5 sm:flex sm:items-center sm:justify-between gap-1 sm:gap-2 w-full"
                 aria-label="Sound travel path from string to ear"
               >
                 {(
@@ -1038,25 +1049,25 @@ export default function UkuleleAcademyPage() {
                             0
                           );
                         }}
-                        className="flex flex-col items-center gap-1.5 min-w-[72px] koa-focus rounded-xl p-1.5"
+                        className="flex flex-col items-center gap-1 sm:gap-1.5 min-w-0 sm:min-w-[72px] koa-focus rounded-xl p-1 sm:p-1.5"
                       >
                         <span
-                          className={`w-11 h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                          className={`w-9 h-9 sm:w-11 sm:h-11 rounded-full flex items-center justify-center transition-all duration-300 ${
                             isLit
                               ? 'bg-[#FFC857] text-[#12343B] scale-105 shadow-xs'
                               : 'bg-[#FFF7E8] text-[#3F5C62]'
                           }`}
                         >
-                          <IconComponent className="w-5 h-5" />
+                          <IconComponent className="w-4 h-4 sm:w-5 sm:h-5" />
                         </span>
-                        <span className="text-[14px] font-semibold text-[#12343B]">
+                        <span className="text-[11px] sm:text-[14px] font-semibold text-[#12343B] truncate max-w-full">
                           {node.label}
                         </span>
                       </button>
 
                       {idx < 4 && (
                         <div
-                          className={`h-[2px] flex-1 min-w-[16px] transition-colors duration-300 ${
+                          className={`hidden sm:block h-[2px] flex-1 min-w-[12px] transition-colors duration-300 ${
                             activeSoundWaveStep > idx
                               ? 'bg-[#3DB9A5]'
                               : 'bg-[#12343B]/15'
@@ -1468,18 +1479,18 @@ export default function UkuleleAcademyPage() {
 
             {/* ==================== 5.8 COMPLETE (THE SINGLE CORAL ELEMENT WHEN UNLOCKED) ==================== */}
             <section className="max-w-[680px] mx-auto text-center space-y-4">
-              <div className="relative inline-block">
+              <div className="relative inline-block w-full sm:w-auto">
                 <button
                   type="button"
                   disabled={!canMarkLessonComplete}
                   onClick={handleCompleteLesson}
-                  className={`px-8 py-4 rounded-full text-[18px] font-bold flex items-center justify-center gap-3 min-h-[56px] transition-all koa-focus ${
+                  className={`w-full sm:w-auto px-5 sm:px-8 py-4 rounded-full text-[16px] sm:text-[18px] font-bold flex items-center justify-center gap-2.5 sm:gap-3 min-h-[56px] transition-all koa-focus ${
                     canMarkLessonComplete
                       ? 'bg-[#FF7A59] hover:bg-[#F26A47] text-[#12343B] koa-shadow scale-100 hover:scale-[1.02]'
                       : 'bg-[#E4EFE7] text-[#12343B]/65 cursor-not-allowed'
                   }`}
                 >
-                  {!canMarkLessonComplete && <Lock className="w-5 h-5" />}
+                  {!canMarkLessonComplete && <Lock className="w-5 h-5 shrink-0" />}
                   <span>Complete lesson and continue</span>
                 </button>
 
@@ -1857,18 +1868,18 @@ export default function UkuleleAcademyPage() {
               </div>
 
               {/* 7-Day Streak Calendar Strip */}
-              <div className="flex flex-col items-start lg:items-end gap-4">
-                <div className="grid grid-cols-7 gap-2.5 sm:gap-3">
+              <div className="flex flex-col items-stretch sm:items-start lg:items-end gap-4 w-full lg:w-auto">
+                <div className="grid grid-cols-7 gap-1.5 sm:gap-3 w-full">
                   {last7DaysStrip.map((dayItem) => (
                     <div
                       key={dayItem.iso}
-                      className="flex flex-col items-center gap-2 bg-[#FFFCF5] px-3 py-3 rounded-[20px] koa-shadow min-w-[46px]"
+                      className="flex flex-col items-center gap-1.5 sm:gap-2 bg-[#FFFCF5] px-1.5 py-2.5 sm:px-3 sm:py-3 rounded-[16px] sm:rounded-[20px] koa-shadow min-w-0"
                     >
-                      <span className="text-[14px] font-semibold text-[#3F5C62]">
+                      <span className="text-[11px] sm:text-[14px] font-semibold text-[#3F5C62] truncate max-w-full">
                         {dayItem.dayLabel}
                       </span>
                       <span
-                        className={`w-7 h-7 rounded-full flex items-center justify-center ${
+                        className={`w-6 h-6 sm:w-7 sm:h-7 rounded-full flex items-center justify-center ${
                           dayItem.practiced
                             ? 'bg-[#3DB9A5] text-[#12343B]'
                             : dayItem.isToday
@@ -1880,7 +1891,7 @@ export default function UkuleleAcademyPage() {
                         }
                       >
                         {dayItem.practiced ? (
-                          <Check className="w-4 h-4 stroke-[3]" />
+                          <Check className="w-3.5 h-3.5 sm:w-4 sm:h-4 stroke-[3]" />
                         ) : (
                           <span className="w-2 h-2 rounded-full bg-[#12343B]/30" />
                         )}
@@ -1892,7 +1903,7 @@ export default function UkuleleAcademyPage() {
                 <button
                   type="button"
                   onClick={() => jumpToLesson(nextRecommendedLesson.number)}
-                  className="px-6 py-3 rounded-full bg-[#FF7A59] hover:bg-[#F26A47] text-[#12343B] text-[16px] font-bold transition-colors koa-focus"
+                  className="w-full sm:w-auto text-center px-6 py-3 rounded-full bg-[#FF7A59] hover:bg-[#F26A47] text-[#12343B] text-[16px] font-bold transition-colors koa-focus"
                 >
                   Continue Lesson {nextRecommendedLesson.number} →
                 </button>

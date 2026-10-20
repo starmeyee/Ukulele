@@ -371,12 +371,12 @@ export default function AiUkuleleTutor({
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 placeholder="Ask Koa a question…"
-                className="flex-1 bg-[#FFFCF5] rounded-full px-4 py-3 text-[16px] text-[#12343B] placeholder:text-[#3F5C62] focus:outline-none ring-1 ring-[#12343B]/20 focus:ring-2 focus:ring-[#12343B] min-h-[48px]"
+                className="min-w-0 flex-1 bg-[#FFFCF5] rounded-full px-4 py-3 text-[16px] text-[#12343B] placeholder:text-[#3F5C62] focus:outline-none ring-1 ring-[#12343B]/20 focus:ring-2 focus:ring-[#12343B] min-h-[48px]"
               />
               <button
                 type="submit"
                 disabled={!input.trim() || isLoading}
-                className="px-5 py-3 rounded-full bg-[#FF7A59] hover:bg-[#F26A47] disabled:bg-[#E4EFE7] disabled:text-[#3F5C62] text-[#12343B] text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[48px] shrink-0 koa-focus"
+                className="px-4 sm:px-5 py-3 rounded-full bg-[#FF7A59] hover:bg-[#F26A47] disabled:bg-[#E4EFE7] disabled:text-[#3F5C62] text-[#12343B] text-[15px] sm:text-[16px] font-bold flex items-center gap-1.5 transition-colors min-h-[48px] shrink-0 koa-focus"
               >
                 <span>Send</span>
                 <Send className="w-4 h-4" />

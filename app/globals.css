@@ -13,6 +13,12 @@
   --color-hairline: rgba(18, 52, 59, 0.12);
 }
 
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
 /* Glass used strictly in 3 places: top nav, stage selected-part popover, and Koa drawer header */
 .koa-glass {
   background-color: #FFF7E8;
